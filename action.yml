@@ -1,0 +1,30 @@
+name: 'A11y Lint'
+description: 'Static accessibility linter for Shopify Liquid and HTML templates. Liquid-aware, no browser required.'
+author: 'Scale Media'
+
+inputs:
+  structural-only:
+    description: 'Skip files where the diff has no structural HTML changes (copy-only edits)'
+    required: false
+    default: 'true'
+  files:
+    description: 'Space-separated list of files to lint. Leave empty to auto-detect changed files from the PR diff.'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run a11y linter
+      shell: bash
+      run: |
+        ARGS="--ci"
+        if [ -z "${{ inputs.files }}" ]; then
+          ARGS="$ARGS --diff"
+          if [ "${{ inputs.structural-only }}" = "true" ]; then
+            ARGS="$ARGS --structural-only"
+          fi
+        else
+          ARGS="$ARGS ${{ inputs.files }}"
+        fi
+        node ${{ github.action_path }}/lint-a11y.js $ARGS
